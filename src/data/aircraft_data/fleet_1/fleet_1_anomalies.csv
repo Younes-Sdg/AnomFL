@@ -1,2 +1,2 @@
-fleet_id,aircraft_id,anomaly_type,start_time,end_time
-1,4,engine_stall,2025-01-01 04:58:00,2025-01-01 05:18:00
+fleet_id,aircraft_id,anomaly_type,affected_features,start_time,end_time,duration_minutes
+1,5,fuel_leak,"['engine_rpm', 'fuel_flow', 'engine_temperature']",2025-01-01,2025-01-01 16:35:00,995.0
