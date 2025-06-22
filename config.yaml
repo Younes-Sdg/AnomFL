@@ -1,0 +1,53 @@
+# AnomFL Configuration File
+
+# Data Generation Settings
+data_generation:
+  default_fleet_id: 1
+  default_num_aircraft: 5
+  default_num_anomalous: 1
+  default_num_points: 200
+  default_interval_minutes: 5
+  default_anomaly_duration: 5
+  
+  # Sensor ranges for normal operation
+  sensor_ranges:
+    engine_rpm:
+      mean: 2000
+      std: 100
+    fuel_flow:
+      mean: 500
+      std: 50
+    engine_temperature:
+      mean: 700
+      std: 30
+    vibration_level:
+      mean: 1.0
+      std: 0.1
+
+# Autoencoder Settings
+autoencoder:
+  input_dim: 4
+  latent_dim: 2
+  hidden_dims: [32, 16]
+  learning_rate: 0.001
+  batch_size: 32
+
+# Federated Learning Settings
+federated:
+  default_rounds: 10
+  default_local_epochs: 100
+  default_learning_rate: 0.001
+  anomaly_threshold_k: 3.0  # k-sigma rule
+
+# Paths
+paths:
+  data_dir: "data/aircraft_data"
+  output_dir: "outputs"
+  models_dir: "models"
+  logs_dir: "logs"
+
+# Logging
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/anomfl.log" 
