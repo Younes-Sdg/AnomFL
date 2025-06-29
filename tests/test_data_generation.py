@@ -5,7 +5,11 @@ Tests for the data generation module.
 import pytest
 import pandas as pd
 import numpy as np
-from src.data_generation.aircraft_data_generator import Aircraft, Fleet
+from pathlib import Path
+import tempfile
+import os
+
+from src.anomfl.data_generation.aircraft_data_generator import Aircraft, Fleet
 
 
 class TestAircraft:

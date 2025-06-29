@@ -6,9 +6,10 @@ import pytest
 import torch
 import numpy as np
 import pandas as pd
+from pathlib import Path
 import tempfile
 import os
-from src.federated.centralized_server import FederatedClient, CentralizedServer
+from src.anomfl.federated.centralized_server import FederatedClient, CentralizedServer
 
 
 class TestFederatedClient:

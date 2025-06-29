@@ -6,9 +6,10 @@ import pytest
 import torch
 import numpy as np
 import pandas as pd
+from pathlib import Path
 import tempfile
 import os
-from src.autoencoders.autoencoder import Autoencoder
+from src.anomfl.autoencoders.autoencoder import Autoencoder
 
 
 class TestAutoencoder:

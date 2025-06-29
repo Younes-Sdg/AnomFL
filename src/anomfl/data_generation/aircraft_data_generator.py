@@ -19,11 +19,29 @@ class Aircraft:
         self.start_time = start_time if start_time is not None else base_time
 
     def generate_data(self, num_points=100, interval_minutes=1):
+        """Generate realistic aircraft sensor data with correlations."""
         self.timestamps = [self.start_time + pd.Timedelta(minutes=i * interval_minutes) for i in range(num_points)]
-        self.engine_rpm = np.random.normal(2000, 100, num_points)
-        self.fuel_flow = np.random.normal(500, 50, num_points)
-        self.engine_temperature = np.random.normal(700, 30, num_points)
-        self.vibration_level = np.random.normal(1.0, 0.1, num_points)
+        
+        # Generate base engine RPM with realistic variations
+        self.engine_rpm = np.random.normal(2000, 100, num_points) ### 2000/300 (3*sigma)
+        
+        # Fuel flow correlates with engine RPM (higher RPM = higher fuel consumption)
+        fuel_flow_base = 500 + 0.1 * (self.engine_rpm - 2000)  # Base correlation -500/90
+        self.fuel_flow = fuel_flow_base + np.random.normal(0, 20, num_points)
+        
+        # Engine temperature correlates with both RPM and fuel flow
+        temp_base = 700 + 0.05 * (self.engine_rpm - 2000) + 0.1 * (self.fuel_flow - 500)
+        self.engine_temperature = temp_base + np.random.normal(0, 15, num_points)
+        
+        # Vibration level correlates with RPM (higher RPM = more vibration)
+        vib_base = 1.0 + 0.0001 * (self.engine_rpm - 2000)
+        self.vibration_level = vib_base + np.random.normal(0, 0.05, num_points)
+        
+        # Ensure all values are physically realistic
+        self.engine_rpm = np.clip(self.engine_rpm, 800, 3000)
+        self.fuel_flow = np.clip(self.fuel_flow, 200, 800)
+        self.engine_temperature = np.clip(self.engine_temperature, 400, 900)
+        self.vibration_level = np.clip(self.vibration_level, 0.1, 3.0)
 
     def inject_events(self, duration=5, affected_features=None):
         if self.engine_rpm is None:

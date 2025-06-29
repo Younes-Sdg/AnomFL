@@ -1,23 +1,22 @@
 """
 Basic usage example for AnomFL.
 
-This script demonstrates the complete workflow:
-1. Generate aircraft data with anomalies
-2. Set up federated learning clients
-3. Train the federated model
-4. Detect anomalies
+This example demonstrates:
+1. Data generation for aircraft sensor data
+2. Training a centralized autoencoder
+3. Training federated learning models
+4. Anomaly detection
 """
 
-import os
 import sys
-import glob
-import shutil
+import os
+from pathlib import Path
 
-# Add src to path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
+# Add src to path for imports
+sys.path.append(str(Path(__file__).parent.parent / "src"))
 
-from data_generation.aircraft_data_generator import Fleet
-from federated.centralized_server import CentralizedServer, FederatedClient
+from anomfl.data_generation.aircraft_data_generator import Fleet
+from anomfl.federated.centralized_server import CentralizedServer, FederatedClient
 
 
 def main():

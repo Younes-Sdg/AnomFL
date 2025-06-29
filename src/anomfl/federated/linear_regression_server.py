@@ -4,17 +4,18 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from typing import List, Dict, Tuple, Optional
-from ..autoencoders.autoencoder import Autoencoder
+from ..autoencoders.linear_regression import LinearRegression
 
 
-class FederatedClient:
+class LinearRegressionFederatedClient:
     """
-    Represents a single client (e.g., an aircraft) in the federated system.
+    Represents a single client (e.g., an aircraft) in the federated system for linear regression.
     It holds a path to its local data and handles its own local training.
     """
-    def __init__(self, client_id: int, file_path: str):
+    def __init__(self, client_id: int, file_path: str, target_sensor='engine_temperature'):
         self.id = client_id
         self.file_path = file_path
+        self.target_sensor = target_sensor
         self.model = None # The model will be sent by the server
 
     def set_model(self, model):
@@ -27,8 +28,9 @@ class FederatedClient:
             raise ValueError("Model has not been set by the server.")
         
         # Each client loads and trains on its own data file
-        self.model.train_autoencoder(
+        self.model.train_linear_regression(
             file_paths=[self.file_path],
+            target_sensor=self.target_sensor,
             num_epochs=num_epochs,
             lr=lr
         )
@@ -39,18 +41,18 @@ class FederatedClient:
             return None
         return copy.deepcopy(self.model.state_dict())
 
-    def reconstruction_error(self, data_tensor: torch.Tensor):
-        """Calculates reconstruction error for a given tensor."""
+    def prediction_error(self, input_tensor: torch.Tensor, target_tensor: torch.Tensor):
+        """Calculates prediction error for given input and target tensors."""
         if self.model is None:
             raise ValueError("Model has not been set by the server.")
-        return self.model.reconstruction_error(data_tensor)
+        return self.model.prediction_error(input_tensor, target_tensor)
 
 
-class CentralizedServer:
+class LinearRegressionCentralizedServer:
     """
-    Orchestrates the Federated Averaging (FedAvg) process.
+    Orchestrates the Federated Averaging (FedAvg) process for linear regression models.
     """
-    def __init__(self, clients: List[FederatedClient], model: Autoencoder):
+    def __init__(self, clients: List[LinearRegressionFederatedClient], model: LinearRegression):
         self.clients = clients
         self.global_model = copy.deepcopy(model)
 
@@ -107,7 +109,7 @@ class CentralizedServer:
 
     def evaluate_client(self, client_id: int):
         """
-        Calculates reconstruction errors and an anomaly threshold for a specific client.
+        Calculates prediction errors and an anomaly threshold for a specific client.
         The threshold is based on the 3-sigma rule applied to that client's data.
         """
         target_client = next((c for c in self.clients if c.id == client_id), None)
@@ -118,13 +120,25 @@ class CentralizedServer:
         df = pd.read_csv(target_client.file_path)
         sensor_names = ['engine_rpm', 'fuel_flow', 'engine_temperature', 'vibration_level']
         
+        # Separate target sensor from input sensors
+        input_sensors = [s for s in sensor_names if s != target_client.target_sensor]
+        
+        # Prepare input and target data
+        input_data = df[input_sensors]
+        target_data = df[[target_client.target_sensor]]
+        
         # Scale the data consistently
-        scaler = MinMaxScaler()
-        scaled_data = scaler.fit_transform(df[sensor_names])
-        data_tensor = torch.tensor(scaled_data, dtype=torch.float32)
+        input_scaler = MinMaxScaler()
+        target_scaler = MinMaxScaler()
+        
+        scaled_input = input_scaler.fit_transform(input_data)
+        scaled_target = target_scaler.fit_transform(target_data)
+        
+        input_tensor = torch.tensor(scaled_input, dtype=torch.float32)
+        target_tensor = torch.tensor(scaled_target, dtype=torch.float32)
 
         # Calculate errors using the final global model
-        errors = self.global_model.reconstruction_error(data_tensor).numpy()
+        errors = self.global_model.prediction_error(input_tensor, target_tensor).numpy()
         
         # Calculate threshold using 3-sigma rule (more robust than mean + 3*std)
         mean_error = np.mean(errors)
@@ -149,4 +163,4 @@ class CentralizedServer:
                 "n_points": len(errors)
             })
         df = pd.DataFrame(records).sort_values("mean_mse", ascending=False)
-        return df.reset_index(drop=True)
+        return df.reset_index(drop=True) 
