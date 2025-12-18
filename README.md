@@ -9,9 +9,6 @@ The system uses a **centralized federated learning architecture** where a centra
 
 ### 1. Installation
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd AnomFL
 
 # Install in development mode
 pip install -e .[dev]
